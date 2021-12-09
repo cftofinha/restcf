@@ -81,129 +81,156 @@
 		
 	</cffunction>
 	
-	<!--- Detalhes do Usuario --->
-	<cffunction name="userDetails" access="public" output="false" hint="Get user details" returntype="struct">
-		<cfargument name="userid" required="true" type="numeric" />
+	<cffunction name="userDetails" access="public" output="false" hint="Obter detalhes do usuário" returntype="struct">
+		<cfargument name="userid" required="true" type="numeric">
 		
-		<cfset var resObj = {}>
+		<cfset var resObj = {} />
 		<cfset returnArray = ArrayNew(1) />
 		
-		<cfquery name="getuser" datasource="#application.datasource#">
-			select userid,
-				firstname,
-				lastname,
-				email,
-				username,
-				password,
-				salt,
-				DATE_FORMAT(lastlogin,'%d/%m/%Y %H:%i:%s') as lastlogin
+		<cfquery name="getUser" datasource="#application.datasource#">
+			select userid
+				,firstname
+				,lastname
+				,email
+				,username
+				,password
+				,salt
+				,DATE_FORMAT(lastlogin, '%d/%m/%Y %H:%i:%s') as lastlogin
 			from users
-			where userid = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userid#">
+			where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
 		</cfquery>
 		
-		<cfif getuser.recordcount eq 0>
+		<cfif getUser.recordCount eq 0>
 			<cfset resObj["success"] = false>
-			<cfset resObj["message"] = "ID do Usuário não encontrado.">
+			<cfset resObj["data"] = "Id do usuário não encontrado">
 		<cfelse>
-			<cfloop query="getuser">
-				<cfset userStruct = StructNew() />
+			<cfloop query="getUser">
+				<cfset userStruct = structNew() />
 				<cfset userStruct["id"] = userid />
 				<cfset userStruct["firstname"] = firstname />
 				<cfset userStruct["lastname"] = lastname />
 				<cfset userStruct["email"] = email />
 				<cfset userStruct["lastlogin"] = lastlogin />
-				<cfset ArrayAppend(returnArray,userStruct) />
+				<cfset arrayAppend(returnArray, userStruct) />
 			</cfloop>
 			
 			<cfset resObj["success"] = true>
-			<cfset resObj["data"] = SerializeJSON(returnArray)>
+			<!---<cfset resObj["data"] = serializeJson(returnArray)>--->
+			<cfset resObj["data"] = returnArray>
+			
 		</cfif>
 		
 		<cfreturn resObj>
+		
 	</cffunction>
 	
-	<!--- Atualização dos dados do Usuário --->
-	<cffunction name="updateUser" access="public" output="false" hint="Update user details" returntype="struct">
-		<cfargument name="userid" required="true" type="numeric" />
-		<cfargument name="structform" required="true" type="any" />
+	<cffunction name="updateUser" access="public" hint="atualizar dados do usuário" output="false" returntype="struct">
+		<cfargument name="userid" required="true" type="numeric">
+		<cfargument name="structform" required="true" type="any">
 		
-		<cfset var resObj = {}>
+		<cfset var resObj = {} />
 		
-		<cfquery name="validuser" datasource="#application.datasource#">
-			select userid
-			from users
-			where userid = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userid#">
+		<cfquery name="validUser" datasource="#application.datasource#">
+			select userid from users
+			where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
 		</cfquery>
 		
-		<cfif validuser.recordcount eq 1>
+		<cfif validUser.recordCount eq 1>
 			<cftry>
-				<cfquery name="updateuser" datasource="#application.datasource#">
+				<cfquery datasource="#application.datasource#">
 					update users set 
-						firstname = <cfqueryparam cfsqltype="cf_sql_varchar" maxlength="100" value="#structform.firstname#">,
-						lastname = <cfqueryparam cfsqltype="cf_sql_varchar" maxlength="100" value="#structform.lastname#">,
-						email = <cfqueryparam cfsqltype="cf_sql_varchar" maxlength="255" value="#structform.email#">
-					where userid = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userid#">
+						firstname = <cfqueryparam value="#structform.firstname#" cfsqltype="cf_sql_varchar" maxlength="50">
+						,lastname = <cfqueryparam value="#structform.lastname#" cfsqltype="cf_sql_varchar" maxlength="50">
+						,email = <cfqueryparam value="#structform.email#" cfsqltype="cf_sql_varchar" maxlength="50">
+					where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
 				</cfquery>
-		
-				<cfset resObj["success"] = true>
-				<cfset resObj["message"] = "Detalhes do usuário atualziado com sucesso.">
+				<cfset resObj["success"] = true />
+				<cfset resObj["data"] = "Dados do Usuário atualizado com sucesso" />
 				
 				<cfcatch type="any">
-					<cfset resObj["success"] = false>
-					<cfset resObj["message"] = "Problema ao executar database query " & #cfcatch["message"]#>
+					<cfset resObj["success"] = false />
+					<cfset resObj["data"] = "Problema ao executar a atualização do usuário" & #cfcatch["message"]# />
 				</cfcatch>
 			</cftry>
 		<cfelse>
-			<cfset resObj["success"] = false>
-			<cfset resObj["message"] = "ID do Usuário não encontrado.">
+			<cfset resObj["success"] = false />
+			<cfset resObj["data"] = "Usuário não encontrado com o ID informado" />
 		</cfif>
+		
+		<cfreturn resObj>
+	</cffunction>
+	
+	<cffunction name="updatePassword" access="public" hint="atualizar senha do usuário" output="false" returntype="struct">
+		<cfargument name="userid" required="true" type="numeric">
+		<cfargument name="structform" required="true" type="any">
+		
+		<cfset var resObj = {} />
+		
+		<cfquery name="validUser" datasource="#application.datasource#">
+			select 
+				userid, password, salt 
+			from users
+			where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
+		</cfquery>
+		
+		<cfif validUser.recordCount eq 1>
+			<cfif not compareNocase(hash(validUser.salt & structform.senhaAntiga, 'SHA-256', 'UTF-8'), validUser.password)>
+				<cftry>
+					<cfset novaSenha = hash(validUser.salt & structform.senhaNova, 'SHA-256', 'UTF-8') />
+					<cfquery datasource="#application.datasource#">
+						update users set 
+							password = <cfqueryparam value="#variables.novaSenha#" cfsqltype="cf_sql_varchar" maxlength="255">
+						where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
+					</cfquery>
+					<cfset resObj["success"] = true />
+					<cfset resObj["data"] = "Senha do Usuário atualizada com sucesso" />
+					
+					<cfcatch type="any">
+						<cfset resObj["success"] = false />
+						<cfset resObj["data"] = "Problema ao executar a atualização da senha do usuário" & #cfcatch["message"]# />
+					</cfcatch>
+				</cftry>
+			<cfelse>
+				<cfset resObj["success"] = false />
+				<cfset resObj["data"] = "Senha informada não é compatível com a gravada em banco" />
+			</cfif>
+		<cfelse>
+			<cfset resObj["success"] = false />
+			<cfset resObj["data"] = "Usuário não encontrado com o ID informado" />
+		</cfif> 
 		
 		<cfreturn resObj>
 		
 	</cffunction>
 	
-	<!--- Atualizando a senha do Usuário --->
-	<cffunction name="updatePassword" access="public" output="false" hint="Update user password" returntype="struct">	
-		<cfargument name="userid" required="true" type="numeric" />
-		<cfargument name="structform" required="true" type="any" />
+	<cffunction name="deleteUser" access="public" hint="excluir usuário" output="false" returntype="struct">
+		<cfargument name="userid" required="true" type="numeric">
 		
-		<cfset var resObj = {}>
+		<cfset var resObj = {} />
 		
-		<cfquery name="pwduser" datasource="#application.datasource#">
-			select userid,
-				password,
-				salt
-			from users
-			where userid = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userid#">
+		<cfquery name="validUser" datasource="#application.datasource#">
+			select userid
+			where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
 		</cfquery>
 		
-		<cfif pwduser.recordcount eq 1>
-			<cfif Hash(pwduser.salt & structform.oldpassword, 'SHA-256', 'UTF-8') eq pwduser.password>
-				<cftry>
-					<cfset hashpwd = Hash(pwduser.salt & structform.password, 'SHA-256', 'UTF-8')>
-					
-					<cfquery name="updatepwd" datasource="#application.datasource#">
-						update users set 
-							password = <cfqueryparam cfsqltype="cf_sql_varchar" maxlength="255" value="#hashpwd#">
-						where userid = <cfqueryparam cfsqltype="cf_sql_integer" value="#arguments.userid#">
-					</cfquery>
-					
-					<cfset resObj["success"] = true>
-					<cfset resObj["message"] = "Password updated successfully.">
-					
-					<cfcatch type="any">
-						<cfset resObj["success"] = false>
-						<cfset resObj["message"] = "Problem executing database query " & #cfcatch["message"]#>
-					</cfcatch>
+		<cfif validUser.recordCount eq 1>
+			<cftry>
+				<cfquery datasource="#application.datasource#">
+					delete from users
+					where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
+				</cfquery>
+				<cfset resObj["success"] = true />
+				<cfset resObj["data"] = "Usuário excluído com sucesso" />
+				
+				<cfcatch type="any">
+					<cfset resObj["success"] = false />
+					<cfset resObj["data"] = "Problema ao executar a exclusão do usuário" & #cfcatch["message"]# />
+				</cfcatch>
 				</cftry>
-			<cfelse>
-				<cfset resObj["success"] = false>
-				<cfset resObj["message"] = "Incorrect old password.">
-			</cfif>
 		<cfelse>
-			<cfset resObj["success"] = false>
-			<cfset resObj["message"] = "Incorrect user id provided.">
-		</cfif>
+			<cfset resObj["success"] = false />
+			<cfset resObj["data"] = "Usuário não encontrado com o ID informado" />
+		</cfif> 
 		
 		<cfreturn resObj>
 		

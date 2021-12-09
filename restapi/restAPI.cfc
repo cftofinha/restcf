@@ -53,61 +53,48 @@
 		
 	</cffunction>
 	
-	<!--- Detalhes do usuário --->
-	<cffunction name="getuser" restpath="detalhes/{id}" access="remote" returntype="struct" httpmethod="GET" produces="application/json">
-		<cfargument name="id" type="any" required="yes" restargsource="path"/>
-		<cfset var response = {}>
+	<!--- detalhes do usuário --->
+	<cffunction name="getUser" restpath="detalhes/{id}" access="remote" returntype="struct" httpmethod="GET" produces="application/json">
+		<cfargument name="id" type="any" required="true" restargsource="path">
 		
-		<cfset verify = authenticate()>
-		<cfif not verify.success>
-			<cfset response["success"] = false>
-			<cfset response["message"] = verify.message>
-			<cfset response["errcode"] = 'no-token'>
-		<cfelse>
-			<cfset response = objUser.userDetails(arguments.id)>
-		</cfif>
-
-		<cfreturn response>
-
+		<cfset var response = {} />
+		
+		<cfset response = objUser.userDetails(arguments.id)>
+		
+		<cfreturn response> 
 	</cffunction>
 	
-	<cffunction name="putuser" restpath="atualizar-dados/{id}" access="remote" returntype="struct" httpmethod="PUT" produces="application/json">
-		<cfargument name="id" type="any" required="yes" restargsource="path"/>
-		<cfargument name="structform" type="any" required="yes">
+	<!--- update dos dados do usuario --->
+	<cffunction name="putUser" restpath="atualizar-dados/{id}" access="remote" returntype="struct" httpmethod="PUT" produces="application/json">
+		<cfargument name="id" type="any" required="true" restargsource="path">
+		<cfargument name="structform" type="any" required="true"> 
 		
-		<cfset var response = {}>
+		<cfset var response = {} />
 		
-		<cfset verify = authenticate()>
-		<cfif not verify.success>
-			<cfset response["success"] = false>
-			<cfset response["message"] = verify.message>
-			<cfset response["errcode"] = 'no-token'>
-		<cfelse>
-			<cfset response = objUser.updateUser(arguments.id, arguments.structform)>
-		</cfif>
+		<cfset response = objUser.updateUser(arguments.id, arguments.structform)>
 		
-		<cfreturn response>
+		<cfreturn response> 
+	</cffunction>
 
+	<cffunction name="putPassword" restpath="atualizar-senha/{id}" access="remote" returntype="struct" httpmethod="PUT" produces="application/json">
+		<cfargument name="id" type="any" required="true" restargsource="path">
+		<cfargument name="structform" type="any" requirexcluir-usuarioed="true"> 
+		
+		<cfset var response = {} />
+		
+		<cfset response = objUser.updatePassword(arguments.id, arguments.structform)>
+		
+		<cfreturn response> 
 	</cffunction>
 	
-	<cffunction name="password" restpath="atualizar-senha/{id}" access="remote" returntype="struct" httpmethod="PUT" produces="application/json">
-		<cfargument name="id" type="numeric" required="yes" restargsource="path"/>
-		<cfargument name="structform" type="any" required="yes">
+	<cffunction name="delUser" restpath="excluir-usuario/{id}" access="remote" returntype="struct" httpmethod="DELETE" produces="application/json">
+		<cfargument name="id" type="any" required="true" restargsource="path">
 		
-		<cfset var response = {}>
+		<cfset var response = {} />
 		
-		<cfset verify = authenticate()>
-		<cfif not verify.success>
-			<cfset response["success"] = false>
-			<cfset response["message"] = verify.message>
-			<cfset response["errcode"] = 'no-token'>
-		<cfelse>
-			<cfset response = objUser.updatePassword(arguments.id, arguments.structform)>
-		</cfif>
+		<cfset response = objUser.deleteUser(arguments.id)>
 		
-		<cfreturn response>
-		
+		<cfreturn response> 
 	</cffunction>
 	
-
 </cfcomponent>

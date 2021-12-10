@@ -210,6 +210,7 @@
 		
 		<cfquery name="validUser" datasource="#application.datasource#">
 			select userid
+			from users
 			where userid = <cfqueryparam value="#arguments.userid#" cfsqltype="cf_sql_integer" maxlength="4">
 		</cfquery>
 		
@@ -230,7 +231,7 @@
 		<cfelse>
 			<cfset resObj["success"] = false />
 			<cfset resObj["data"] = "Usuário não encontrado com o ID informado" />
-		</cfif> 
+		</cfif>
 		
 		<cfreturn resObj>
 		

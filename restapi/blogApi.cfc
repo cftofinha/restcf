@@ -13,15 +13,16 @@
 		
 	</cffunction>
 	
-	<cffunction name="getListaCategorias" restpath="listagem-de-categorias" access="remote" returntype="struct" httpmethod="GET" produces="application/json">
+	<cffunction name="getDetalharPost" restpath="detalhar-post/{id}" access="remote" returntype="struct" httpmethod="GET" produces="application/json">
+		<cfargument name="id" type="any" required="true" restargsource="path">
 		
-		<cfset var reponse = {} />
+		<cfset var response = {} />
 		
-		<cfset response = objCategoria.getListaCategorias() />
+		<cfset response = objBlog.getDetalharPost(arguments.id)>
 		
-		<cfreturn response>
-		
+		<cfreturn response> 
 	</cffunction>
+	
 	
 	<cffunction name="salvarPost" restpath="salvar-post" access="remote" returntype="struct" httpmethod="post" produces="application/json">
 		<cfargument name="structform" type="any" required="true" >
@@ -33,5 +34,14 @@
 		
 	</cffunction>
 	
+	<cffunction name="getListaCategorias" restpath="listagem-de-categorias" access="remote" returntype="struct" httpmethod="GET" produces="application/json">
+		
+		<cfset var reponse = {} />
+		
+		<cfset response = objCategoria.getListaCategorias() />
+		
+		<cfreturn response>
+		
+	</cffunction>
 	
 </cfcomponent>

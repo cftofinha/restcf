@@ -1,50 +1,47 @@
+component output="false" {
+	this.name = "restcf";
+	this.restsettings.cfclocation = "./";
+	this.restsettings.skipcfcwitherror = true;
+	this.datasource = "dbcursocf";
+	
+	setlocale("Portuguese (Brazilian)");
+	setEncoding("URL", "UTF-8");
+	setEncoding("FORM", "UTF-8");
+	
+	//Run when application starts up
+	function onApplicationStart() returntype="boolean" {
+		Application.jwtkey = "$3cR3!k@GH34";
+		application.datasource = this.datasource;
+		restInitApplication(getDirectoryFromPath(getCurrentTemplatePath()) & 'restapi', 'api');
+		return true;
+	}
+	
+	function onRequestStart(string targetPage) output="true" returnType="void" {
+		if(structKeyExists(url, 'reload') && url.reload eq 2022){
+			lock timeout="10" throwontimeout="No" type="Exclusive" scope="Application"{
+				onApplicationStart();
+			}
+		}
+	}
 
-<cfcomponent output="false">
-	<!--- Application name, unique to production and development environments --->
-	<cfset this.name = "restcf">
-	<cfset this.restsettings.cfclocation = "./">
-	<cfset this.restsettings.skipcfcwitherror = true>
-
-	<!--- Run when application starts up --->
-	<cffunction name="onApplicationStart" returnType="boolean">
-		<cfset Application.jwtkey = "$3cR3!k@GH34">
-		<cfset application.datasource = "dbsenac">
-		<cfset restInitApplication(getDirectoryFromPath(getCurrentTemplatePath()) & 'restapi', 'api')>
-		<cfreturn true>
-	</cffunction>
-
-	<!--- Run when application stops --->
-	<cffunction name="onApplicationEnd" returnType="void" output="false">
-	</cffunction>
-
-	<!--- Fired when user requests a CFM that doesn't exist. --->
-	<cffunction name="onMissingTemplate">
-	</cffunction>
-
-	<!--- Run before the request is processed --->
-	<cffunction name="onRequestStart" returnType="void" output="true">
+	//Run when application stops
+	function onApplicationEnd() returnType="void" output="false"{
 		
-		<cfif IsDefined("URL.reload") AND URL.reload EQ "cfml2021">
-			<cflock timeout="10" throwontimeout="No" type="Exclusive" scope="Application">
-				<cfset OnApplicationStart()>
-			</cflock>
-			<cfhtmlhead text="<script language=""JavaScript"">alert('Dados de Aplicação atualizados com sucesso.');</script>">
-		</cfif>
-	
-	</cffunction>
+	}
 
-	
-	<!--- Runs at end of request, processes footer --->
-	<cffunction name="onRequestEnd">
-	</cffunction>
+	public void function onSessionStart() {
+		
+	}
 
-	
-	<!--- Runs when your session starts --->
-	<cffunction name="onSessionStart" returnType="void" output="false">
-	</cffunction>
+	public void function onSessionEnd( struct sessionScope, struct appScope ) {
+		
+	}
 
-	<!--- Runs when session ends --->
-	<cffunction name="onSessionEnd" returnType="void" output="false">
-	</cffunction>
+	public boolean function onMissingTemplate( template ) {
+		
+	}
 	
-</cfcomponent>
+	function onError( any Exception, string EventName){
+		writeDump(arguments.exception);
+	}
+}

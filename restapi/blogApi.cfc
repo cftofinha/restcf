@@ -1,5 +1,5 @@
 <cfcomponent rest="true" restpath="blog">
-	<cfobject name="objBlog" component="models.PostBlog">
+	<cfobject name="objBlog" component="cfc.PostBlog">
 	
 	<cffunction name="getListaPosts" restpath="listagem-de-posts" 
 				access="remote" returntype="struct" httpmethod="GET" produces="application/json">

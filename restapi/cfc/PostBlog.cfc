@@ -93,4 +93,62 @@
 		
 	</cffunction>
 	
+	<cffunction name="salvarRegistro" output="false" access="public" returntype="struct">
+		<cfargument name="structForm" type="any" required="true">
+		
+		<cfset var resObj = {} />
+		<cfset variables.dataPostagem = lsDateFormat(structForm.dateposted, 'yyyy-mm-dd') />
+		
+		<cfif not isDefined("structForm.idPost")>
+			
+			<cftry>
+				<cfquery datasource="#application.datasource#">
+					insert into blogPost (
+						 title
+						, summary
+						, body
+						, dateposted
+						, createdDateTime
+						,deleted
+					)
+					values(
+						 <cfqueryparam value="#structForm.title#" cfsqltype="cf_sql_varchar" maxlength="70">
+						, <cfqueryparam value="#structForm.summary#" cfsqltype="cf_sql_longvarchar">
+						, <cfqueryparam value="#structForm.body#" cfsqltype="cf_sql_longvarchar">
+						, <cfqueryparam value="#variables.dataPostagem#" cfsqltype="cf_sql_date">
+						, <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
+						, <cfqueryparam value="0" cfsqltype="cf_sql_varchar" maxlength="1">
+					)
+				</cfquery>
+				<cfset resObj["sucess"] = true />
+				<cfset resObj["data"] = "Post Cadastrado com sucesso" />
+				
+				<cfcatch type="any">
+					<cfset resObj["sucess"] = false />
+					<cfset resObj["data"] = "Erro ao Cadastrar o post" & #cfcatch["message"]# />
+				</cfcatch>
+			</cftry>
+		<cfelse>
+			<cftry>
+			<cfquery datasource="#application.datasource#">
+				update blogPost  set 
+					 title = <cfqueryparam value="#structForm.title#" cfsqltype="cf_sql_varchar" maxlength="70">
+					, summary = <cfqueryparam value="#structForm.summary#" cfsqltype="cf_sql_longvarchar">
+					, body = <cfqueryparam value="#structForm.body#" cfsqltype="cf_sql_longvarchar">
+					, dateposted = <cfqueryparam value="#variables.dataPostagem#" cfsqltype="cf_sql_date">
+					, modifieddatetime = <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
+				where blogpostid = <cfqueryparam value="#structForm.idPost#" cfsqltype="cf_sql_integer" maxlength="4">
+			</cfquery>
+			<cfset resObj["sucess"] = true />
+				<cfset resObj["data"] = "Post Atualizado com sucesso" />
+				
+				<cfcatch type="any">
+					<cfset resObj["sucess"] = false />
+					<cfset resObj["data"] = "Erro ao Atualizar o post" & #cfcatch["message"]# />
+				</cfcatch>
+			</cftry>
+		</cfif>
+		<cfreturn resObj>
+	</cffunction>
+	
 </cfcomponent>

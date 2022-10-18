@@ -1,5 +1,5 @@
 <cfcomponent rest="true" restpath="blog">
-	<cfobject name="objBlog" component="cfc.PostBlog">
+	<cfobject name="objBlog" component="models.PostBlog">
 	
 	<cffunction name="getListaPosts" restpath="listagem-de-posts" 
 				access="remote" returntype="struct" httpmethod="GET" produces="application/json">
@@ -23,5 +23,16 @@
 		<cfreturn response>
 		
 	</cffunction>
+	
+	<cffunction name="salvarRegistro" restpath="salvar-post" access="remote" returntype="struct" httpmethod="POST" produces="application/json">
+		<cfargument name="structForm" type="any" required="true">
+		
+		<cfset var response = {} />
+		<cfset response = objBlog.salvarRegistro(arguments.structForm) />
+		
+		<cfreturn response>
+		
+	</cffunction>
+	
 	
 </cfcomponent>
